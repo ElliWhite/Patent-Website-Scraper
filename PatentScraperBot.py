@@ -7,7 +7,7 @@ import getpass
 
 user = getpass.getuser()
 
-driver = webdriver.Chrome("C:\Users\%s\Desktop\chromedriver_win32\chromedriver.exe" % user)
+driver = webdriver.Chrome("C:\Users\%s\Desktop\chromedriver.exe" % user)
 
 with open("C:\Users\%s\Desktop\patentqueries.txt" % user) as f:
     queries = f.readlines()
