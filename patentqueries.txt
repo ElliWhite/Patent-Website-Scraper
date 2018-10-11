@@ -1,6 +1,39 @@
-autonomous lidar
-autonomous dog
-tour dog
+self-balancing
+self-balancing mobile robot
 self-balancing robot
 self-balancing tour guide
 self-balancing segway
+self-balancing electronic tour
+self-balancing platform
+self-balancing mobile
+self-balancing mobile platform
+self-balancing outdoor platform
+self-balancing outdoor tour
+self-balancing outdoor mobile
+self-balancing outdoor robot
+self-balancing indoor platform
+self-balancing indoor mobile
+self-balancing indoor robot
+indoor tour robot
+indoor tour platform
+indoor tour mobile
+outdoor tour robot
+outdoor tour platform
+commercial tour guide robot
+commercial tour guide platform
+tour guide robot
+mobile tour
+mobile tour guide
+electronic tour guide
+electronic tour
+balance robot
+balancing robot
+balancing tour guide
+autonomous tour
+autonomous tour guide
+autonomous navigation tour
+autonomous navigation tour guide
+autonomous navigation tour guide robot
+autonomous navigation tour guide platform
+segway tour guide
+segway tour platform
