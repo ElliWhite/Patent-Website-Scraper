@@ -5,6 +5,7 @@ import csv
 import math
 import getpass
 import re
+import os
 
 timeNow = time.time()
 
@@ -87,10 +88,13 @@ for query in queries:
                 except:
                     print "COULDN'T FIND TITLE ROW %d" % publicationID
 
-                contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
-                contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
-                crIndex = contentRowSplit.index('info')
-                resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
+                try:
+                    contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
+                    contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
+                    crIndex = contentRowSplit.index('info')
+                    resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
+                except:
+                    print "COULDN'T FIND CONTENT ROW %d" % publicationID
 
                 publicationID = publicationID + 1
                 linkCount = linkCount + 1
@@ -125,10 +129,13 @@ for query in queries:
             except:
                 print "COULDN'T FIND TITLE ROW %d" % publicationID
 
-            contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
-            contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
-            crIndex = contentRowSplit.index('info')
-            resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
+            try:
+                contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
+                contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
+                crIndex = contentRowSplit.index('info')
+                resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
+            except:
+                print "COULDN'T FIND CONTENT ROW %d" % publicationID
                 
             publicationID = publicationID + 1
             linkCount = linkCount + 1
@@ -158,7 +165,93 @@ timeEnd = time.time()
 
 totalTime = timeEnd - timeNow
 
-print "TIME TAKEN IN SECS = %d" % totalTime
-print "TIME TAKEN IN MIN = %d" % (totalTime / 60)
+#print "TIME TAKEN IN SECS = %d" % totalTime
+print "TIME TAKEN TO SEARCH ESPACE.NET IN MIN = %d" % (totalTime / 60)
+
+queryNum = 0
+
+for query in queries:
+
+    driver.get("https://patents.google.com")
+
+    searchTextBox = driver.find_element_by_xpath("//input[@name='q']")
+
+    searchTextBox.send_keys(query)
+
+    driver.find_element_by_id('searchButton').click()
+
+    time.sleep(2)
+
+    downloadButton = driver.find_element_by_xpath("//a[@class='style-scope search-results']")
+
+    downloadLink = downloadButton.get_attribute('href')
+
+    driver.get(downloadLink)
+
+    time.sleep(2)
+
+    #this is the line used for university PCs
+    #fileList = os.listdir(r"C:\Users\%s\Downloads" % user)
+
+    #this is the line used for Elliott's PC ONLY
+    fileList = os.listdir(r"D:\Downloads")
+
+    matching = [s for s in fileList if "gp-search" in s]
+        
+    x = len(matching)
+
+    print matching[x-1]
+
+    #uncomment this next line and comment out the 2nd line for use on university PCs
+    #with open('C:\Users\%s\Downloads\%s' % (user, matching[x-1]), 'r') as file:
+    with open('D:\Downloads\%s' % matching[x-1], 'r') as downloadedFile:
+        downloadedFileReader = csv.reader(downloadedFile, delimiter=' ', quotechar='|')
+        rowCounter =  1
+        newAppNumList = []
+        for row in downloadedFileReader:
+            if rowCounter > 2:
+                appNum = row[0].split(",")
+                appNum = appNum[0]
+                appNum = appNum.split("-")
+                appNum = appNum[0] + appNum[1]
+                newAppNumList.append(appNum)
+            rowCounter = rowCounter + 1
+        print rowCounter
+        rowCounter = rowCounter - 3
+        with open('C:/Users/%s/Desktop/PatentNumberResults.csv' % user, 'r') as fileRead:
+            fileReader = csv.reader(fileRead, lineterminator='\n')
+            #need to iterate over rows in PatentNumberResults.csv and build up a list of the application numbers
+            appNumList = []
+            for row in fileReader:
+                try:
+                    if len(row[3]) != 0:
+                        appNumList.append(row[3])
+                except:
+                    print "row[3] is empty in PatentNumberResults.csv"
+            with open('C:/Users/%s/Desktop/PatentNumberResults.csv' % user, 'a') as fileWrite:
+                fileWriter = csv.writer(fileWrite, lineterminator='\n')
+                fileWriter.writerow([queries[queryNum], rowCounter])
+                for applicationNumber in newAppNumList:
+                    boolSameName = False
+                    for existingAppNum in appNumList:
+                        if applicationNumber == existingAppNum:
+                            boolSameName = True
+                            print "PATENT ""%s"" ALREADY EXISTS IN DOCUMENT" % applicationNumber
+                            break
+                    #now need to write info into file
+                    #currently only writes application number
+                    if boolSameName == False:
+                        print "WRITING %d TO FILE" % applicationNumber
+                        fileWriter.writerow(["","","",applicationNumber])
+
+                    #time.sleep(2)
+
+            
+    
+    queryNum = queryNum + 1
+
+
+
+    
 
 driver.quit();
