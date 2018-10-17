@@ -75,7 +75,10 @@ for query in queries:
             pubNames = driver.find_elements_by_class_name('publicationLinkClass')
             
             for name in pubNames:
-                resNames.insert(linkCount, str(name.text))
+                try:
+                    resNames.insert(linkCount, str(name.text))
+                except:
+                    print "COULDN'T FIND ANY 'publicationLinkClass's"
                 try:
                     publicationLink = driver.find_element_by_id('publicationId%d' % publicationID)
                     href = publicationLink.get_attribute('href')
@@ -166,13 +169,15 @@ timeEnd = time.time()
 totalTime = timeEnd - timeNow
 
 #print "TIME TAKEN IN SECS = %d" % totalTime
-print "TIME TAKEN TO SEARCH ESPACE.NET IN MIN = %d" % (totalTime / 60)
+print "TIME TAKEN TO SEARCH ESPACE.NET IN MINS = %d" % (totalTime / 60)
 
 queryNum = 0
 
 for query in queries:
 
     driver.get("https://patents.google.com")
+
+    time.sleep(1)
 
     searchTextBox = driver.find_element_by_xpath("//input[@name='q']")
 
@@ -191,10 +196,10 @@ for query in queries:
     time.sleep(2)
 
     #this is the line used for university PCs
-    #fileList = os.listdir(r"C:\Users\%s\Downloads" % user)
+    fileList = os.listdir(r"C:\Users\%s\Downloads" % user)
 
     #this is the line used for Elliott's PC ONLY
-    fileList = os.listdir(r"D:\Downloads")
+    #fileList = os.listdir(r"D:\Downloads")
 
     matching = [s for s in fileList if "gp-search" in s]
         
@@ -203,18 +208,23 @@ for query in queries:
     print matching[x-1]
 
     #uncomment this next line and comment out the 2nd line for use on university PCs
-    #with open('C:\Users\%s\Downloads\%s' % (user, matching[x-1]), 'r') as file:
-    with open('D:\Downloads\%s' % matching[x-1], 'r') as downloadedFile:
-        downloadedFileReader = csv.reader(downloadedFile, delimiter=' ', quotechar='|')
+    with open('C:\Users\%s\Downloads\%s' % (user, matching[x-1]), 'r') as downloadedFile:
+    #with open('D:\Downloads\%s' % matching[x-1], 'r') as downloadedFile:
+        downloadedFileReader = csv.reader(downloadedFile, lineterminator='\n')
         rowCounter =  1
         newAppNumList = []
+        newPatentNames = []
+        newPatentLinks = []
         for row in downloadedFileReader:
             if rowCounter > 2:
-                appNum = row[0].split(",")
-                appNum = appNum[0]
+                appNum = row[0]
                 appNum = appNum.split("-")
                 appNum = appNum[0] + appNum[1]
                 newAppNumList.append(appNum)
+                patentName = row[1]
+                newPatentNames.append(patentName)
+                patentLink = row[8]
+                newPatentLinks.append(patentLink)
             rowCounter = rowCounter + 1
         print rowCounter
         rowCounter = rowCounter - 3
@@ -231,6 +241,7 @@ for query in queries:
             with open('C:/Users/%s/Desktop/PatentNumberResults.csv' % user, 'a') as fileWrite:
                 fileWriter = csv.writer(fileWrite, lineterminator='\n')
                 fileWriter.writerow([queries[queryNum], rowCounter])
+                i = 0
                 for applicationNumber in newAppNumList:
                     boolSameName = False
                     for existingAppNum in appNumList:
@@ -238,19 +249,26 @@ for query in queries:
                             boolSameName = True
                             print "PATENT ""%s"" ALREADY EXISTS IN DOCUMENT" % applicationNumber
                             break
+                        
                     #now need to write info into file
                     #currently only writes application number
                     if boolSameName == False:
-                        print "WRITING %d TO FILE" % applicationNumber
-                        fileWriter.writerow(["","","",applicationNumber])
+                        print "WRITING %s TO FILE" % applicationNumber
+                        fileWriter.writerow(["","",newPatentNames[i],applicationNumber, newPatentLinks[i]])
+                    i = i + 1
 
-                    #time.sleep(2)
+                   
 
             
     
     queryNum = queryNum + 1
 
+timeEnd = time.time()
 
+totalTime = timeEnd - timeNow
+
+#print "TIME TAKEN IN SECS = %d" % totalTime
+print "TIME TAKEN TO SEARCH GOOGLE PATENTS IN MINS = %d" % (totalTime / 60)
 
     
 
