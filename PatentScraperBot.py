@@ -11,18 +11,18 @@ timeNow = time.time()
 
 user = getpass.getuser()
 
-driver = webdriver.Chrome("C:\Users\%s\Desktop\chromedriver.exe" % user)
+driver = webdriver.Chrome("C:/Users/%s/Desktop/chromedriver.exe" % user)
 
-with open("C:\Users\%s\Desktop\patentqueries.txt" % user) as f:
+with open("C:/Users/%s/Desktop/patentqueries.txt" % user) as f:
     queries = f.readlines()
 
 queries = [x.strip() for x in queries]
 
-print queries
+print(queries)
 
 listResNumbers = []
 
-resTitleStrings = []
+resAppNums = []
 
 overallCount = 0
 
@@ -48,7 +48,7 @@ for query in queries:
 
     numResultsFoundMsg = driver.find_element_by_class_name("numResultsFoundMsg")
 
-    print numResultsFoundMsg.text + " " + query
+    print (numResultsFoundMsg.text + " " + query)
 
     for element in numResultsFoundMsg.text.split():
         if "," in element:
@@ -56,7 +56,7 @@ for query in queries:
         if element.isdigit():
             numResults = int(element)
             listResNumbers.insert(queryNum, numResults)
-            print numResults
+            print (numResults)
 
     # find out how many times to click "load more" button, rounded up
     timesToClickLoad = int((math.ceil(numResults / 25.0)) - 1)
@@ -64,7 +64,7 @@ for query in queries:
     # need to load more links as only 25 are displayed initially
     if numResults > 25:
                 
-        print "Clicking LOAD-MORE button %i times" % timesToClickLoad
+        print ("Clicking LOAD-MORE button %i times" % timesToClickLoad)
 
         publicationID = 1
         linkCount = 0
@@ -76,28 +76,23 @@ for query in queries:
             
             for name in pubNames:
                 try:
-                    resNames.insert(linkCount, str(name.text))
-                except:
-                    print "COULDN'T FIND ANY 'publicationLinkClass's"
-                try:
                     publicationLink = driver.find_element_by_id('publicationId%d' % publicationID)
                     href = publicationLink.get_attribute('href')
-                    resLinks.insert(linkCount, href)
+                    try:
+                        titleRow = driver.find_element_by_id('titleRow_%d' % publicationID)
+                        try:
+                            contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
+                            contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
+                            crIndex = contentRowSplit.index('info')
+                            resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
+                            resLinks.insert(linkCount, href)
+                            resNames.insert(linkCount, str(name.text))
+                        except:
+                            print ("COULDN'T FIND CONTENT ROW %d" % publicationID)
+                    except:
+                        print ("COULDN'T FIND TITLE ROW %d" % publicationID)
                 except:
-                    print "COULDN'T FIND PUBLICATION %d" % publicationID
-
-                try:
-                    titleRow = driver.find_element_by_id('titleRow_%d' % publicationID)
-                except:
-                    print "COULDN'T FIND TITLE ROW %d" % publicationID
-
-                try:
-                    contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
-                    contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
-                    crIndex = contentRowSplit.index('info')
-                    resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
-                except:
-                    print "COULDN'T FIND CONTENT ROW %d" % publicationID
+                    print ("COULDN'T FIND PUBLICATION %d" % publicationID)
 
                 publicationID = publicationID + 1
                 linkCount = linkCount + 1
@@ -106,7 +101,7 @@ for query in queries:
                 #try to click "load more results button"
                 driver.find_element_by_id('nextPageLinkBottom').click()
             except:
-                print "COULD NOT FIND ""NEXT"" BUTTON"
+                print ("COULD NOT FIND ""NEXT"" BUTTON")
                 break
             time.sleep(1)
             
@@ -119,26 +114,37 @@ for query in queries:
         pubNames = driver.find_elements_by_class_name('publicationLinkClass')
         
         for name in pubNames:
-            resNames.insert(linkCount, str(name.text))
             try:
                 publicationLink = driver.find_element_by_id('publicationId%d' % publicationID)
                 href = publicationLink.get_attribute('href')
-                resLinks.insert(linkCount, href)
+                try:
+                    titleRow = driver.find_element_by_id('titleRow_%d' % publicationID)
+                    try:
+                        contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
+                        contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
+                        crIndex = contentRowSplit.index('info')
+                        resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
+                        resLinks.insert(linkCount, href)
+                        resNames.insert(linkCount, str(name.text))
+                    except:
+                        print ("COULDN'T FIND CONTENT ROW %d" % publicationID)
+                except:
+                    print ("COULDN'T FIND TITLE ROW %d" % publicationID)
             except:
-                print "COULDN'T FIND PUBLICATION %d" % publicationID
+                print ("COULDN'T FIND PUBLICATION %d" % publicationID)
 
-            try:
-                titleRow = driver.find_element_by_id('titleRow_%d' % publicationID)
-            except:
-                print "COULDN'T FIND TITLE ROW %d" % publicationID
+            # try:
+            #     titleRow = driver.find_element_by_id('titleRow_%d' % publicationID)
+            # except:
+            #     print "COULDN'T FIND TITLE ROW %d" % publicationID
 
-            try:
-                contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
-                contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
-                crIndex = contentRowSplit.index('info')
-                resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
-            except:
-                print "COULDN'T FIND CONTENT ROW %d" % publicationID
+            # try:
+            #     contentRow = driver.find_element_by_id('contentRow_%d' % publicationID)
+            #     contentRowSplit = re.sub("[^\w]", " ",  contentRow.text).split()
+            #     crIndex = contentRowSplit.index('info')
+            #     resPubInfo.insert(linkCount, contentRowSplit[crIndex+1])
+            # except:
+            #     print "COULDN'T FIND CONTENT ROW %d" % publicationID
                 
             publicationID = publicationID + 1
             linkCount = linkCount + 1
@@ -147,18 +153,19 @@ for query in queries:
         fileWriter = csv.writer(file, lineterminator='\n')
         fileWriter.writerow([queries[queryNum], listResNumbers[queryNum]])
         j = 0
-        for newName in resNames:
-            boolSameName = False
-            if len(resTitleStrings) != 0:
-                for comparableName in resTitleStrings:
+        for pubInfo in resPubInfo:
+            boolSameNum = False
+            if len(resAppNums) != 0:
+                for comparableAppNum in resAppNums:
                     #now compare new patent title to already writen titles in document
-                    if newName == comparableName:
-                        boolSameName = True
-                        print "PATENT ""%s"" ALREADY EXISTS IN DOCUMENT" % newName
+                    if pubInfo == comparableAppNum:
+                        boolSameNum= True
+                        print ("PATENT ""%s"" ALREADY EXISTS IN DOCUMENT" % pubInfo)
                         break
-            if boolSameName == False:
-                resTitleStrings.insert(overallCount, newName)
-                fileWriter.writerow(["", "", newName, resPubInfo[j], '=HYPERLINK("%s")' % resLinks[j]])
+            if boolSameNum == False:
+                resAppNums.insert(overallCount, pubInfo)
+                #print("%s, %s, %s" % (resNames[j], resPubInfo[j], resLinks[j]))
+                fileWriter.writerow(["", "", resNames[j], resPubInfo[j], '=HYPERLINK("%s")' % resLinks[j]])
                 j = j + 1
                 overallCount = overallCount + 1
 
@@ -169,7 +176,7 @@ timeEnd = time.time()
 totalTime = timeEnd - timeNow
 
 #print "TIME TAKEN IN SECS = %d" % totalTime
-print "TIME TAKEN TO SEARCH ESPACE.NET IN MINS = %d" % (totalTime / 60)
+print ("TIME TAKEN TO SEARCH ESPACE.NET IN MINS = %d" % (totalTime / 60))
 
 queryNum = 0
 
@@ -196,7 +203,7 @@ for query in queries:
     time.sleep(2)
 
     #this is the line used for university PCs
-    fileList = os.listdir(r"C:\Users\%s\Downloads" % user)
+    fileList = os.listdir(r"C:/Users/%s/Downloads" % user)
 
     #this is the line used for Elliott's PC ONLY
     #fileList = os.listdir(r"D:\Downloads")
@@ -205,11 +212,11 @@ for query in queries:
         
     x = len(matching)
 
-    print matching[x-1]
+    print (matching[x-1])
 
     #uncomment this next line and comment out the 2nd line for use on university PCs
-    with open('C:\Users\%s\Downloads\%s' % (user, matching[x-1]), 'r') as downloadedFile:
-    #with open('D:\Downloads\%s' % matching[x-1], 'r') as downloadedFile:
+    with open('C:/Users/%s/Downloads/%s' % (user, matching[x-1]), 'r', encoding="utf8") as downloadedFile:
+    #with open('D:\Downloads\%s' % matching[x-1], 'r', encoding="utf8") as downloadedFile:
         downloadedFileReader = csv.reader(downloadedFile, lineterminator='\n')
         rowCounter =  1
         newAppNumList = []
@@ -226,9 +233,9 @@ for query in queries:
                 patentLink = row[8]
                 newPatentLinks.append(patentLink)
             rowCounter = rowCounter + 1
-        print rowCounter
+        print (rowCounter)
         rowCounter = rowCounter - 3
-        with open('C:/Users/%s/Desktop/PatentNumberResults.csv' % user, 'r') as fileRead:
+        with open('C:/Users/%s/Desktop/PatentNumberResults.csv' % user, 'r', encoding="utf8") as fileRead:
             fileReader = csv.reader(fileRead, lineterminator='\n')
             #need to iterate over rows in PatentNumberResults.csv and build up a list of the application numbers
             appNumList = []
@@ -237,8 +244,8 @@ for query in queries:
                     if len(row[3]) != 0:
                         appNumList.append(row[3])
                 except:
-                    print "row[3] is empty in PatentNumberResults.csv"
-            with open('C:/Users/%s/Desktop/PatentNumberResults.csv' % user, 'a') as fileWrite:
+                    print ("row[3] is empty in PatentNumberResults.csv")
+            with open('C:/Users/%s/Desktop/PatentNumberResults.csv' % user, 'a', encoding="utf8") as fileWrite:
                 fileWriter = csv.writer(fileWrite, lineterminator='\n')
                 fileWriter.writerow([queries[queryNum], rowCounter])
                 i = 0
@@ -247,14 +254,14 @@ for query in queries:
                     for existingAppNum in appNumList:
                         if applicationNumber == existingAppNum:
                             boolSameName = True
-                            print "PATENT ""%s"" ALREADY EXISTS IN DOCUMENT" % applicationNumber
+                            print ("PATENT ""%s"" ALREADY EXISTS IN DOCUMENT" % applicationNumber)
                             break
                         
                     #now need to write info into file
                     #currently only writes application number
                     if boolSameName == False:
-                        print "WRITING %s TO FILE" % applicationNumber
-                        fileWriter.writerow(["","",newPatentNames[i],applicationNumber, newPatentLinks[i]])
+                        print ("WRITING %s TO FILE" % applicationNumber)
+                        fileWriter.writerow(["","",newPatentNames[i], applicationNumber, '=HYPERLINK("%s")' % newPatentLinks[i]])
                     i = i + 1
 
                    
@@ -268,7 +275,7 @@ timeEnd = time.time()
 totalTime = timeEnd - timeNow
 
 #print "TIME TAKEN IN SECS = %d" % totalTime
-print "TIME TAKEN TO SEARCH GOOGLE PATENTS IN MINS = %d" % (totalTime / 60)
+print ("TIME TAKEN TO SEARCH GOOGLE PATENTS IN MINS = %d" % (totalTime / 60))
 
     
 
